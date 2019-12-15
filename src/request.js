@@ -9,7 +9,6 @@
 
 import {parse as parseUrl, format as formatUrl} from 'url';
 import Stream from 'stream';
-import utf8 from 'utf8';
 import Headers, {exportNodeCompatibleHeaders} from './headers';
 import Body, {clone, extractContentType, getTotalBytes} from './body';
 import {isAbortSignal} from './utils/is';
@@ -48,15 +47,15 @@ export default class Request {
 				// In order to support Node.js' Url objects; though WHATWG's URL objects
 				// will fall into this branch also (since their `toString()` will return
 				// `href` property anyway)
-				parsedURL = parseUrl(utf8.encode(input.href));
+				parsedURL = new URL(input.href);
 			} else {
 				// Coerce input to a string before attempting to parse
-				parsedURL = parseUrl(utf8.encode(`${input}`));
+				parsedURL = new URL(`${input}`);
 			}
 
 			input = {};
 		} else {
-			parsedURL = parseUrl(utf8.encode(input.url));
+			parsedURL = new URL(input.url);
 		}
 
 		let method = init.method || input.method || 'GET';
@@ -237,10 +236,21 @@ export function getNodeRequestOptions(request) {
 	// HTTP-network fetch step 4.2
 	// chunked encoding is handled by Node.js
 
-	return {
-		...parsedURL,
+	// manually spread the URL object instead of spread syntax
+	let reqOptions = {
+		path: parsedURL.pathname,
+		pathname: parsedURL.pathname,
+		hostname: parsedURL.hostname,
+		protocol: parsedURL.protocol,
+		port: parsedURL.port,
+		hash: parsedURL.hash,
+		search: parsedURL.search,
+		query: parsedURL.query,
+		href: parsedURL.href,
 		method: request.method,
 		headers: exportNodeCompatibleHeaders(headers),
 		agent
 	};
+
+	return reqOptions;
 }

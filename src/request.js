@@ -123,6 +123,7 @@ export default class Request {
 			input.compress : true;
 		this.counter = init.counter || input.counter || 0;
 		this.agent = init.agent || input.agent;
+		this.localAddress = init.localAddress;
 	}
 
 	get method() {
@@ -245,6 +246,7 @@ export function getNodeRequestOptions(request) {
 	return Object.assign({}, parsedURL, {
 		method: request.method,
 		headers: exportNodeCompatibleHeaders(headers),
-		agent
+		agent,
+		localAddress: request.localAddress,
 	});
 }
